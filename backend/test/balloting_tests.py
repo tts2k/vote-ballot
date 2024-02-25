@@ -183,6 +183,8 @@ class TestBalloting:
         [REDACTED NATIONAL ID]
         [REDACTED NATIONAL ID]
         """.strip()
+        print(list(all_ballot_comments)[0])
+        print(expected_redacted_comment)
         assert list(all_ballot_comments)[0] == expected_redacted_comment
 
     def test_catch_fraud(self):

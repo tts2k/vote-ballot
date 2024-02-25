@@ -1,8 +1,12 @@
 from typing import Optional, Set
 
-from main.objects.ballot import Ballot
+import bcrypt
+from main.api.registry import get_voter_status
+from main.detection.pii_detection import redact_free_text
+from main.objects.ballot import Ballot, generate_ballot_number
 from main.objects.candidate import Candidate
-from main.objects.voter import BallotStatus, Voter
+from main.objects.voter import BallotStatus, VoterStatus, decrypt_name
+from main.store.data_registry import VotingStore
 
 
 def issue_ballot(voter_national_id: str) -> Optional[str]:
@@ -14,7 +18,11 @@ def issue_ballot(voter_national_id: str) -> Optional[str]:
     :returns: The ballot number of the new ballot, or None if the voter isn't registered
     """
     # TODO: Implement this!
-    raise NotImplementedError()
+    status = get_voter_status(voter_national_id)
+    if status == VoterStatus.NOT_REGISTERED:
+        return None
+
+    return generate_ballot_number(voter_national_id)
 
 
 def count_ballot(ballot: Ballot, voter_national_id: str) -> BallotStatus:
@@ -33,8 +41,30 @@ def count_ballot(ballot: Ballot, voter_national_id: str) -> BallotStatus:
     :param: voter_national_id The sensitive ID of the voter who the ballot corresponds to.
     :returns: The Ballot Status after the ballot has been processed.
     """
-    # TODO: Implement this!
-    raise NotImplementedError()
+
+    store = VotingStore.get_instance()
+
+    voter = store.get_voter_by_national_id(voter_national_id)
+    if voter is None:
+        return BallotStatus.VOTER_NOT_REGISTERED
+    if voter.voted == True:
+        store.fraud_voter(voter_national_id)
+        return BallotStatus.FRAUD_COMMITTED
+
+    ballot_check = bcrypt.checkpw(
+        voter_national_id.encode("utf-8"), ballot.ballot_number.encode("utf-8")
+    )
+    if not ballot_check:
+        return BallotStatus.VOTER_BALLOT_MISMATCH
+
+    store = VotingStore.get_instance()
+    ballot_check = store.is_ballot_valid(ballot.ballot_number)
+    if not ballot_check:
+        return BallotStatus.INVALID_BALLOT
+
+    ballot.voter_comments = redact_free_text(ballot.voter_comments, voter)
+    store.add_ballot(ballot, voter_national_id)
+    return BallotStatus.BALLOT_COUNTED
 
 
 def invalidate_ballot(ballot_number: str) -> bool:
@@ -47,8 +77,13 @@ def invalidate_ballot(ballot_number: str) -> bool:
     :returns: If the ballot does not exist or has already been cast, will return Boolean FALSE.
               Otherwise will return Boolean TRUE.
     """
-    # TODO: Implement this!
-    raise NotImplementedError()
+    store = VotingStore.get_instance()
+    ballot_counted = store.is_ballot_counted(ballot_number)
+    if ballot_counted:
+        return False
+
+    store.invalidate_ballot(ballot_number)
+    return True
 
 
 def verify_ballot(voter_national_id: str, ballot_number: str) -> bool:
@@ -65,8 +100,18 @@ def verify_ballot(voter_national_id: str, ballot_number: str) -> bool:
     :returns: Boolean True if the ballot was issued to the voter specified, and if the ballot has not been marked as
               invalid. Boolean False otherwise.
     """
-    # TODO: Implement this!
-    raise NotImplementedError()
+    ballot_check = bcrypt.checkpw(
+        voter_national_id.encode("utf-8"), ballot_number.encode("utf-8")
+    )
+    if not ballot_check:
+        return False
+
+    store = VotingStore.get_instance()
+    ballot_check = store.is_ballot_valid(ballot_number)
+    if not ballot_check:
+        return False
+
+    return True
 
 
 #
@@ -80,7 +125,8 @@ def get_all_ballot_comments() -> Set[str]:
     :returns: A list of all the ballot comments that are non-empty
     """
     # TODO: Implement this!
-    raise NotImplementedError()
+    store = VotingStore.get_instance()
+    return store.get_all_non_empty_ballot_comments()
 
 
 def compute_election_winner() -> Candidate:
@@ -88,8 +134,8 @@ def compute_election_winner() -> Candidate:
     Computes the winner of the election - the candidate that gets the most votes (even if there is not a majority).
     :return: The winning Candidate
     """
-    # TODO: Implement this!
-    raise NotImplementedError()
+    store = VotingStore.get_instance()
+    return store.get_top_candidate()
 
 
 def get_all_fraudulent_voters() -> Set[str]:
@@ -102,4 +148,13 @@ def get_all_fraudulent_voters() -> Set[str]:
     Then this method would return {"John Smith", "Linda Navarro"} - with a space separating the first and last names.
     """
     # TODO: Implement this!
-    raise NotImplementedError()
+    store = VotingStore.get_instance()
+    fraud_voters = store.get_fraud_voters()
+    result = set()
+
+    for voter in fraud_voters:
+        first_name = decrypt_name(voter.first_name)
+        last_name = decrypt_name(voter.last_name)
+        result.add(first_name + " " + last_name)
+
+    return result

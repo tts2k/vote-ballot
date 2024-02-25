@@ -4,9 +4,10 @@
 #
 
 import os
-import bcrypt
-from base64 import b64encode, b64decode
+from base64 import b64decode, b64encode
 from typing import Optional
+
+import bcrypt
 
 UTF_8 = "utf-8"
 

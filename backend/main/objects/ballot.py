@@ -1,5 +1,4 @@
 import bcrypt
-
 from main.objects.voter import Voter
 
 
@@ -16,7 +15,7 @@ class Ballot:
         self.voter_comments = voter_comments
 
 
-def generate_ballot_number(voter: Voter, chosen_candidate_id: str) -> str:
+def generate_ballot_number(national_id: str) -> str:
     """
     Produces a ballot number. Feel free to add parameters to this method, if you feel those are necessary.
 
@@ -33,8 +32,6 @@ def generate_ballot_number(voter: Voter, chosen_candidate_id: str) -> str:
     :return: A string representing a ballot number that satisfies the conditions above
     """
 
-    voter_identifier = str(
-        voter.first_name + voter.last_name + voter.national_id
-    ).encode("utf-8")
+    voter_identifier = str(national_id).encode("utf-8")
 
-    return str(bcrypt.hashpw(voter_identifier, chosen_candidate_id.encode("utf-8")))
+    return bcrypt.hashpw(voter_identifier, bcrypt.gensalt()).decode("utf-8")

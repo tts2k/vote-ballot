@@ -2,17 +2,16 @@
 # This file contains classes that correspond to voters
 #
 
-from base64 import b64encode
+
+from base64 import b64decode, b64encode
 from enum import Enum
 
 import bcrypt
 import jsons
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
+from main.store import secret_registry
 
-from main.config import secret
-
-VOTER_MINIMALIZATION_PEPPER = "VOTER_MINIMALIZATION_PEPPER"
 NAME_ENCRYPTION_KEY_AES_SIV = "NAME_ENCRYPTION_KEY_AES_SIV"
 
 
@@ -26,17 +25,7 @@ def obfuscate_national_id(national_id: str) -> str:
     """
 
     sanitized_national_id = national_id.replace("-", "").replace(" ", "").strip()
-    pepper = secret.get_secret_str(VOTER_MINIMALIZATION_PEPPER)
-    if pepper:
-        pepper = str(secret.gen_salt_or_pepper(), "utf-8")
-        secret.overwrite_secret_str(VOTER_MINIMALIZATION_PEPPER, pepper)
-
-    if pepper is None:
-        raise Exception()
-
-    return str(
-        bcrypt.hashpw(sanitized_national_id.encode("utf-8"), pepper.encode("utf-8"))
-    )
+    return b64encode(sanitized_national_id.encode("utf-8")).decode("utf-8")
 
 
 def encrypt_name(name: str) -> str:
@@ -47,19 +36,22 @@ def encrypt_name(name: str) -> str:
     :param: name A plaintext name that is sensitive and needs to encrypt.
     :return: The encrypted cipher text of the name.
     """
-    expected_byptes = 32
-    name_encryption_key = secret.get_secret_bytes(NAME_ENCRYPTION_KEY_AES_SIV)
+    expected_bytes = 32
+    name_encryption_key = secret_registry.get_secret_bytes(NAME_ENCRYPTION_KEY_AES_SIV)
     if not name_encryption_key:
-        name_encryption_key = get_random_bytes(expected_byptes * 2)
-        secret.overwrite_secret_bytes(NAME_ENCRYPTION_KEY_AES_SIV, name_encryption_key)
+        name_encryption_key = get_random_bytes(expected_bytes * 2)
+        secret_registry.overwrite_secret_bytes(
+            NAME_ENCRYPTION_KEY_AES_SIV, name_encryption_key
+        )
 
-    cipher = AES.new(name_encryption_key, AES.MODE_SIV)
+    nonce = get_random_bytes(expected_bytes)
+    cipher = AES.new(name_encryption_key, AES.MODE_SIV, nonce=nonce)
 
     cipher.update(b"")
     ciphertext, tag = cipher.encrypt_and_digest(name.encode("utf-8"))
 
-    json_v = [b64encode(x).decode("utf-8") for x in (ciphertext, tag)]
-    return jsons.dumps(dict(zip(["ciphertext", "tag"], json_v)))
+    json_v = [b64encode(x).decode("utf-8") for x in (nonce, ciphertext, tag)]
+    return jsons.dumps(dict(zip(["nonce", "ciphertext", "tag"], json_v)))
 
 
 def decrypt_name(encrypted_name: str) -> str:
@@ -69,13 +61,13 @@ def decrypt_name(encrypted_name: str) -> str:
     :param: encrypted_name The ciphertext of a name that is sensitive
     :return: The plaintext name
     """
-    name_encryption_key = secret.get_secret_bytes(NAME_ENCRYPTION_KEY_AES_SIV)
+    name_encryption_key = secret_registry.get_secret_bytes(NAME_ENCRYPTION_KEY_AES_SIV)
     if name_encryption_key is None:
         raise Exception()
 
     b64 = jsons.loads(encrypted_name)
-    json_dict = {k: b64encode(b64[k]) for k in ["ciphertext", "tag"]}
-    cipher = AES.new(name_encryption_key, AES.MODE_SIV)
+    json_dict = {k: b64decode(b64[k]) for k in ["nonce", "ciphertext", "tag"]}
+    cipher = AES.new(name_encryption_key, AES.MODE_SIV, nonce=json_dict["nonce"])
     cipher.update(b"")
 
     return cipher.decrypt_and_verify(json_dict["ciphertext"], json_dict["tag"]).decode(
@@ -94,10 +86,14 @@ class MinimalVoter:
         obfuscated_first_name: str,
         obfuscated_last_name: str,
         obfuscated_national_id: str,
+        voted: bool,
+        fraud_commited: bool,
     ):
         self.obfuscated_national_id = obfuscated_national_id
         self.obfuscated_first_name = obfuscated_first_name
         self.obfuscated_last_name = obfuscated_last_name
+        self.voted = voted
+        self.fraud_commited = fraud_commited
 
 
 class Voter:
@@ -107,10 +103,19 @@ class Voter:
     codebase, we should be using the ObfuscatedVoter class
     """
 
-    def __init__(self, first_name: str, last_name: str, national_id: str):
+    def __init__(
+        self,
+        first_name: str,
+        last_name: str,
+        national_id: str,
+        voted=False,
+        fraud_commited=False,
+    ):
         self.national_id = national_id
         self.first_name = first_name
         self.last_name = last_name
+        self.voted = voted
+        self.fraud_commited = fraud_commited
 
     def get_minimal_voter(self) -> MinimalVoter:
         """
@@ -120,6 +125,8 @@ class Voter:
             encrypt_name(self.first_name.strip()),
             encrypt_name(self.last_name.strip()),
             obfuscate_national_id(self.national_id),
+            self.voted,
+            self.fraud_commited,
         )
 
 

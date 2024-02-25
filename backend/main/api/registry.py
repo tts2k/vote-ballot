@@ -22,8 +22,13 @@ def register_voter(voter: Voter) -> bool:
     :returns: Boolean TRUE if the registration was successful. Boolean FALSE if the voter was already registered
               (based on their National ID)
     """
-    # TODO: Implement this!
-    raise NotImplementedError()
+    store = VotingStore.get_instance()
+    status = get_voter_status(voter.national_id)
+    if status != VoterStatus.NOT_REGISTERED:
+        return False
+
+    store.add_voter(voter)
+    return True
 
 
 def get_voter_status(voter_national_id: str) -> VoterStatus:
@@ -33,8 +38,17 @@ def get_voter_status(voter_national_id: str) -> VoterStatus:
     :param: voter_national_id The sensitive ID of the voter to check the registration status of.
     :returns: The status of the voter that best describes their situation
     """
-    # TODO: Implement this!
-    raise NotImplementedError()
+    store = VotingStore.get_instance()
+    existing_voter = store.get_voter_by_national_id(voter_national_id)
+
+    if existing_voter is None:
+        return VoterStatus.NOT_REGISTERED
+    if existing_voter.fraud_commited:
+        return VoterStatus.FRAUD_COMMITTED
+    if existing_voter.voted:
+        return VoterStatus.BALLOT_COUNTED
+
+    return VoterStatus.REGISTERED_NOT_VOTED
 
 
 def de_register_voter(voter_national_id: str) -> bool:
@@ -46,8 +60,16 @@ def de_register_voter(voter_national_id: str) -> bool:
     :param: voter_national_id The sensitive ID of the voter to de-register.
     :returns: Boolean TRUE if de-registration was successful. Boolean FALSE otherwise.
     """
-    # TODO: Implement this!
-    raise NotImplementedError()
+    store = VotingStore.get_instance()
+    voter = store.get_voter_by_national_id(voter_national_id)
+
+    if voter is None:
+        return False
+    if voter.fraud_commited:
+        return False
+
+    store.delete_voter_by_national_id(voter_national_id)
+    return True
 
 
 #

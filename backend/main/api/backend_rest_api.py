@@ -13,10 +13,10 @@ from flask import request
 from flask_api import FlaskAPI, status
 from flask_cors import CORS
 
-import main.api.balloting as balloting
-import main.api.registry as registry
-from main.objects.ballot import Ballot
-from main.objects.voter import BallotStatus, Voter
+import backend.main.api.balloting as balloting
+import backend.main.api.registry as registry
+from backend.main.objects.ballot import Ballot
+from backend.main.objects.voter import BallotStatus, Voter
 
 app = FlaskAPI(__name__)
 CORS(
@@ -42,9 +42,11 @@ def count_ballot():
     result = balloting.count_ballot(ballot, voter_national_id)
     return (
         {"status": jsons.dumps(result.value)},
-        status.HTTP_202_ACCEPTED
-        if result == BallotStatus.BALLOT_COUNTED
-        else status.HTTP_409_CONFLICT,
+        (
+            status.HTTP_202_ACCEPTED
+            if result == BallotStatus.BALLOT_COUNTED
+            else status.HTTP_409_CONFLICT
+        ),
     )
 
 
