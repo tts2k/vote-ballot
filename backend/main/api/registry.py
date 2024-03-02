@@ -4,9 +4,9 @@
 #
 from typing import List
 
-from main.objects.candidate import Candidate
-from main.objects.voter import Voter, VoterStatus
-from main.store.data_registry import VotingStore
+from ..objects.candidate import Candidate
+from ..objects.voter import Voter, VoterStatus
+from ..store.data_registry import VotingStore
 
 #
 # Voter Registration

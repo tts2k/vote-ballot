@@ -1,7 +1,6 @@
-import base64
 import re
 
-from main.objects.voter import Voter, decrypt_name
+from ..objects.voter import Voter, decrypt_name
 
 REDACTED_PHONE_NUMBER = "[REDACTED PHONE NUMBER]"
 REDACTED_NAME = "[REDACTED NAME]"

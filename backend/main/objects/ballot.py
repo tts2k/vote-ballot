@@ -1,5 +1,6 @@
 import bcrypt
-from main.objects.voter import Voter
+
+from ..objects.voter import Voter
 
 
 class Ballot:

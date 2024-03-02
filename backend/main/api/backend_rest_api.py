@@ -13,10 +13,9 @@ from flask import request
 from flask_api import FlaskAPI, status
 from flask_cors import CORS
 
-import backend.main.api.balloting as balloting
-import backend.main.api.registry as registry
-from backend.main.objects.ballot import Ballot
-from backend.main.objects.voter import BallotStatus, Voter
+from ..objects.ballot import Ballot
+from ..objects.voter import BallotStatus, Voter
+from . import balloting, registry
 
 app = FlaskAPI(__name__)
 CORS(

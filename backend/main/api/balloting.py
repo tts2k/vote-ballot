@@ -1,12 +1,13 @@
 from typing import Optional, Set
 
 import bcrypt
-from main.api.registry import get_voter_status
-from main.detection.pii_detection import redact_free_text
-from main.objects.ballot import Ballot, generate_ballot_number
-from main.objects.candidate import Candidate
-from main.objects.voter import BallotStatus, VoterStatus, decrypt_name
-from main.store.data_registry import VotingStore
+
+from ..detection.pii_detection import redact_free_text
+from ..objects.ballot import Ballot, generate_ballot_number
+from ..objects.candidate import Candidate
+from ..objects.voter import BallotStatus, VoterStatus, decrypt_name
+from ..store.data_registry import VotingStore
+from .registry import get_voter_status
 
 
 def issue_ballot(voter_national_id: str) -> Optional[str]:

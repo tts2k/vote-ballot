@@ -6,9 +6,9 @@ import sqlite3
 from sqlite3 import Connection
 from typing import List, Set
 
-from main.objects.ballot import Ballot
-from main.objects.candidate import Candidate
-from main.objects.voter import MinimalVoter, Voter, obfuscate_national_id
+from ..objects.ballot import Ballot
+from ..objects.candidate import Candidate
+from ..objects.voter import MinimalVoter, Voter, obfuscate_national_id
 
 
 class VotingStore:

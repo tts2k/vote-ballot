@@ -3,14 +3,15 @@
 #
 
 
+import hashlib
 from base64 import b64decode, b64encode
 from enum import Enum
 
-import bcrypt
 import jsons
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
-from main.store import secret_registry
+
+from ..store import secret_registry
 
 NAME_ENCRYPTION_KEY_AES_SIV = "NAME_ENCRYPTION_KEY_AES_SIV"
 
@@ -25,7 +26,7 @@ def obfuscate_national_id(national_id: str) -> str:
     """
 
     sanitized_national_id = national_id.replace("-", "").replace(" ", "").strip()
-    return b64encode(sanitized_national_id.encode("utf-8")).decode("utf-8")
+    return hashlib.sha256(sanitized_national_id.encode("utf-8")).hexdigest()
 
 
 def encrypt_name(name: str) -> str:
