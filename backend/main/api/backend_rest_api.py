@@ -72,6 +72,21 @@ def populate_database():
     registry.register_candidate("Arnav Arora")
 
     # TODO: Feel free to add voters to the voter registry, and issue ballots
+    all_voters = [
+        Voter("Adam", "Smith", "111111111"),
+        Voter("Thien", "Huynh", "222222222"),
+        Voter("Neel", "Banerjee", "333333333"),
+        Voter("Linda", "Qi", "444444444"),
+        Voter("Shoujit", "Gande", "555555555"),
+    ]
+
+    for voter in all_voters:
+        registry.register_voter(voter)
+        print(
+            "Voter {0} Ballot Number: {1}".format(
+                voter.national_id, balloting.issue_ballot(voter.national_id)
+            )
+        )
 
 
 populate_database()
