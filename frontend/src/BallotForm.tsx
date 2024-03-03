@@ -1,5 +1,5 @@
 import React from 'react';
-import { H5, FormGroup, InputGroup, RadioGroup, Radio, TextArea, Button, Intent, Toaster, IToaster } from "@blueprintjs/core";
+import { H5, FormGroup, InputGroup, RadioGroup, Radio, TextArea, Button, Intent, Toaster, H6, Icon } from "@blueprintjs/core";
 import { IconNames } from "@blueprintjs/icons";
 
 
@@ -20,7 +20,7 @@ interface IBallotFormState {
 const HOST_NAME = "127.0.0.1:5000";
 const BASE_URL = "http://" + HOST_NAME + "/api";
 
-const toaster: IToaster = Toaster.create();
+const toaster: Toaster = Toaster.create()
 
 export class IBallotForm extends React.PureComponent<{}, IBallotFormState> {
 
@@ -50,27 +50,34 @@ export class IBallotForm extends React.PureComponent<{}, IBallotFormState> {
      *  1. Somewhere in the object returned below, we should be including language about voter secrecy, and a voter's right to deregister after voting to protect their data
      *  2. Additionally, we should be informing the voter that they shouldn't include any personally identifiable information in the "comment" section, as it risks compromising their voter secrecy
      *  3. Inform the voter that if they vote twice or more, they will not be able to de-register and will be flagged for fraud
-     */ 
+     */
     return (
-    <>
-      <FormGroup>
-        <H5 className="white-text">Enter your voter information</H5>
-        <InputGroup onChange={this.onNationalIdUpdate} value={voterNationalId} large={true} leftIcon={IconNames.PERSON} placeholder="Your National ID" />
-        <br />
-        <InputGroup onChange={this.onBallotNumberUpdate} value={ballotNumber} large={true} leftIcon={IconNames.DOCUMENT} placeholder="Your Ballot Number" />
-        <br />
-        <H5 className="white-text">Choose a Candidate for Chancellor of the Republic</H5>
-        <RadioGroup selectedValue={selectedCandidateId} onChange={this.onCandidateSelect} inline={false}>
-          {this.state.candidates.map(candidate =>
-            <Radio key={candidate.candidate_id} label={candidate.name} value={String(candidate.candidate_id) as string} />
-          )}
-        </RadioGroup>
-        <br />
-        <H5 className="white-text">Additional Voter Comments</H5>
-        <TextArea onChange={this.onCommentUpdate} growVertically={true} value={comments} fill={true} placeholder="Comments or concerns" />
-      </FormGroup>
-      <Button onClick={this.onVoteSubmission} intent={Intent.PRIMARY}>Submit Vote</Button>
-    </>)
+      <>
+        <FormGroup>
+          <H5 className="white-text">Enter your voter information</H5>
+          <InputGroup onChange={this.onNationalIdUpdate} value={voterNationalId} large={true} leftIcon={IconNames.PERSON} placeholder="Your National ID" />
+          <br />
+          <InputGroup onChange={this.onBallotNumberUpdate} value={ballotNumber} large={true} leftIcon={IconNames.DOCUMENT} placeholder="Your Ballot Number" />
+          <br />
+          <H6 className="white-text">Note: After verifiying your identity, your vote will be counted anonymously</H6>
+          <br />
+          <H5 className="white-text">Choose a Candidate for Chancellor of the Republic</H5>
+          <RadioGroup selectedValue={selectedCandidateId} onChange={this.onCandidateSelect} inline={false}>
+            {this.state.candidates.map(candidate =>
+              <Radio key={candidate.candidate_id} label={candidate.name} value={String(candidate.candidate_id) as string} />
+            )}
+          </RadioGroup>
+          <br />
+          <H5 className="white-text">Additional Voter Comments</H5>
+          <H6 className="white-text">
+            <Icon icon="warning-sign" />
+            Warning: Do not put your personal information into the comment section
+          </H6>
+          <br />
+          <TextArea onChange={this.onCommentUpdate} autoResize={true} value={comments} fill={true} placeholder="Comments or concerns" />
+        </FormGroup>
+        <Button onClick={this.onVoteSubmission} intent={Intent.PRIMARY}>Submit Vote</Button>
+      </>)
   }
 
   private onNationalIdUpdate = (event: React.FormEvent<HTMLInputElement>) => {
@@ -130,7 +137,7 @@ export class IBallotForm extends React.PureComponent<{}, IBallotFormState> {
         chosen_candidate_id: selectedCandidateId,
         voter_comments: comments
       }),
-      headers: {'Content-Type': 'application/json'}
+      headers: { 'Content-Type': 'application/json' }
     });
 
     /* If we got a generic bad response, show a danger toast */
@@ -142,8 +149,15 @@ export class IBallotForm extends React.PureComponent<{}, IBallotFormState> {
         });
       })
     } else {
-      // TODO: Since the ballot was successfully counted, inform the user, and inform the user 
-      //       about deleting their voter details (see example in the if-statement above)
+      toaster.show({
+        message: "Ballot casted",
+        intent: Intent.SUCCESS
+      });
+      toaster.show({
+        message: "You can de-register yourself by contacting the voter registrar.",
+        intent: Intent.NONE,
+        timeout: 3000,
+      });
       this.clearEnteredState();
     }
   }
