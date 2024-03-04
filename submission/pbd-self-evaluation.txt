@@ -1,21 +1,35 @@
 1. Proactive not Reactive; Preventative not Remedial
-    a. How this application does it -
-    b. What we can do better -
+    a. How this application does it 
+      - Put warning bout data sensitivity before user event submitting
+    b. What we can do better 
+      - Make user read and confirm before allowing them to use the app
 2. Privacy as the Default
-    a. How this application does it -
-    b. What we can do better -
+    a. How this application does it 
+      - Doing privacy engineering by default needing notice
+    b. What we can do better
+      - There should be an authentication mechanism for user to have more control over their data
 3. Privacy Embedded into Design
-    a. How this application does it -
-    b. What we can do better -
+    a. How this application does it
+      - Privacy features are designed with the app and not a separate part or addon
+    b. What we can do better
+      - Some designs can be improved, like the comment section can be made to automatically detect if personal information is entered and show a warning
 4. Full Functionality — Postive-Sum, not Zero-Sum
-    a. How this application does it -
-    b. What we can do better -
+    a. How this application does it
+      - All functions work normally
+    b. What we can do better
+      - Nothing. The app doesn't sacrifice any core functionality for privacy
 5. End-to-End Security — Lifecycle Protection
-    a. How this application does it -
-    b. What we can do better -
+    a. How this application does it
+      - Personal data are encrypted and obfuscated the moment it enters the app
+    b. What we can do better
+      - An authentication method would help to limit access to the data
 6. Visibility and Transparency
-    a. How this application does it -
-    b. What we can do better -
+    a. How this application does it
+      - Warning are shown on the app of how data will be handled
+    b. What we can do better
+      - A privacy EULA confirmation would be a nice addition
 7. Respect for User Privacy
-    a. How this application does it -
-    b. What we can do better -
+    a. How this application does it
+      - Warnings so that user know their data are being respected.
+    b. What we can do better
+      - Authentication and UI to allow user to see all of their personal data that we have
