@@ -150,13 +150,14 @@ export class IBallotForm extends React.PureComponent<{}, IBallotFormState> {
       })
     } else {
       toaster.show({
-        message: "Ballot casted",
-        intent: Intent.SUCCESS
+        message: "Ballot has been casted.",
+        intent: Intent.SUCCESS,
+        timeout: 3000
       });
       toaster.show({
         message: "You can de-register yourself by contacting the voter registrar.",
-        intent: Intent.NONE,
-        timeout: 3000,
+        intent: Intent.PRIMARY,
+        timeout: 5000,
       });
       this.clearEnteredState();
     }
