@@ -1,5 +1,41 @@
 ## Privacy Engineering Project 1 - Project Instructions
 
+### Running the app
+Note: The instructions on both part assume your current directory is the root of your project (vcs root)
+
+#### 1. Backend
+Note: This project was tested on python3.11
+- Setup your python [virtualenv](https://docs.python.org/3/library/venv.html)
+- cd to the correct directory
+```bash
+cd ./backend
+```
+- Install the correct dependency versions using pip
+```bash
+pip install -r requirements.txt
+```
+- Run tests
+```bash
+pytest
+```
+- Run backend
+```bash
+FLASK_APP="main/api/backend_rest_api.py" flask run
+```
+
+#### 2. Frontend
+- cd to the correct directory
+```bash
+cd ./frontend
+`````
+- Install dependencies
+```bash
+npm install
+```
+- Run frontend
+```bash
+npm start
+```
 
 ### Introduction
 
